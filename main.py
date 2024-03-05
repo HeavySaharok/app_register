@@ -4,8 +4,6 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from data.jobs import Jobs
 from forms.jobs import JobsForm
 from forms.user import RegisterForm, LoginForm
-from forms.user import RegisterForm
-from data.news import News
 from data.users import User
 from data import db_session
 
@@ -32,6 +30,22 @@ def main():
     db_session.global_init("db/mars.db")
     app.run(debug=True)
 
+@app.route('/jobs', methods=['GET', 'POST'])
+@login_required
+def add_jobs():
+    form = JobsForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        jobs = Jobs()
+        jobs.team_leader = form.team_leader.data
+        jobs.work_size = form.work_size.data
+        jobs.collaborators = form.collaborators.data
+        jobs.is_finished = form.is_finished.data
+        current_user.jobs.append(jobs)
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/')
+    return render_template('news.html', title='Добавление новости', form=form)
 
 @app.route("/")
 def index():
