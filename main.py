@@ -1,11 +1,11 @@
-from flask import Flask, render_template, redirect, request, abort
+from flask import Flask, render_template, redirect, request, abort, make_response, jsonify
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 from data.jobs import Jobs
 from forms.jobs import JobsForm
 from forms.user import RegisterForm, LoginForm
 from data.users import User
-from data import db_session
+from data import db_session, jobs_api
 
 app = Flask(__name__)
 login_manager = LoginManager()
@@ -28,7 +28,19 @@ def logout():
 
 def main():
     db_session.global_init("db/mars.db")
+    app.register_blueprint(jobs_api.blueprint)
     app.run(debug=True)
+
+
+@app.errorhandler(400)
+def bad_request(_):
+    return make_response(jsonify({'error': 'Bad Request'}), 400)
+
+
+@app.errorhandler(404)
+def not_found(_):
+    return make_response(jsonify({'error': 'Not found'}), 404)
+
 
 @app.route('/jobs', methods=['GET', 'POST'])
 @login_required
@@ -37,6 +49,7 @@ def add_jobs():
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         jobs = Jobs()
+        jobs.job = form.job.data
         jobs.team_leader = form.team_leader.data
         jobs.work_size = form.work_size.data
         jobs.collaborators = form.collaborators.data
@@ -45,7 +58,8 @@ def add_jobs():
         db_sess.merge(current_user)
         db_sess.commit()
         return redirect('/')
-    return render_template('news.html', title='Добавление новости', form=form)
+    return render_template('jobs.html', title='Добавление новости', form=form)
+
 
 @app.route("/")
 def index():
