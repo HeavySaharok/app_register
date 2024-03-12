@@ -1,13 +1,14 @@
 from flask import Flask, render_template, redirect, request, abort, make_response, jsonify
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-
+from flask_restful import reqparse, abort, Api, Resource
 from data.jobs import Jobs
 from forms.jobs import JobsForm
 from forms.user import RegisterForm, LoginForm
 from data.users import User
-from data import db_session, jobs_api
+from data import db_session, jobs_api, users_resources
 
 app = Flask(__name__)
+api = Api(app) # создадим объект RESTful-API
 login_manager = LoginManager()
 login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -28,6 +29,13 @@ def logout():
 
 def main():
     db_session.global_init("db/mars.db")
+
+    # для списка объектов
+    api.add_resource(users_resources.UsersListResource, '/api/v2/users')
+
+    # для одного объекта
+    api.add_resource(users_resources.UsersResource, '/api/v2/users/<int:user_id>')
+
     app.register_blueprint(jobs_api.blueprint)
     app.run(debug=True)
 
