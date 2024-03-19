@@ -17,4 +17,4 @@ print(post('http://localhost:5000/api/v2/users', json={'surname': 'MISTER',
                                                        'hashed_password': 'hunt_natura1s'}))
 #
 # print(delete('http://localhost:5000/api/v2/users/999').json())  # id = 999 нет в базе
-# print(delete('http://localhost:5000/api/v2/users/3').json())
+print(delete('http://localhost:5000/api/v2/users/3').json())
